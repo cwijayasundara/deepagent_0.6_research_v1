@@ -8,7 +8,7 @@ from deepagents_06_lab import cli
 def test_parse_args_defaults_to_kimi_and_streaming() -> None:
     args = cli.parse_args(["--task", "Analyze this"])
 
-    assert args.model == "kimi-k2.6"
+    assert args.model is None
     assert args.task == "Analyze this"
     assert args.stream is True
     assert args.memory == "local"
@@ -44,7 +44,7 @@ def test_main_runs_agent(monkeypatch, tmp_path: Path) -> None:
     class Args:
         task = "Do work"
         example = False
-        model = "kimi-k2.6"
+        model = "nemotron3:33b"
         memory = "local"
         thread_id = "thread-1"
         stream = False

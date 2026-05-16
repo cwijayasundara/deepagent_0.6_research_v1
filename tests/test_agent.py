@@ -5,8 +5,8 @@ from deepagents_06_lab.agent import AgentConfig
 
 
 def test_agent_config_defaults_to_kimi() -> None:
-    assert AgentConfig().model == "kimi-k2.6"
-    assert AgentConfig().model_provider == "openai"
+    assert AgentConfig().model is None
+    assert AgentConfig().model_provider is None
     assert AgentConfig().memory == "local"
 
 
@@ -51,6 +51,48 @@ def test_build_model_uses_init_chat_model_with_moonshot_key(monkeypatch, tmp_pat
     assert captured["kwargs"]["base_url"] == "https://api.moonshot.ai/v1"
     assert captured["kwargs"]["temperature"] == 0.6
     assert captured["kwargs"]["extra_body"] == {"thinking": {"type": "disabled"}}
+
+
+def test_build_model_uses_ollama_from_env(monkeypatch, tmp_path: Path) -> None:
+    captured = {}
+    (tmp_path / ".env").write_text(
+        "LLM_PROVIDER=ollama\nLLM_MODEL=nemotron3:33b\n",
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+
+    def fake_init_chat_model(*args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return "model"
+
+    monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
+
+    model = agent_module.build_model(AgentConfig(project_root=tmp_path))
+
+    assert model == "model"
+    assert captured["args"] == ("nemotron3:33b",)
+    assert captured["kwargs"] == {"model_provider": "ollama", "temperature": 0}
+
+
+def test_build_model_cli_override_keeps_env_provider(monkeypatch, tmp_path: Path) -> None:
+    captured = {}
+    (tmp_path / ".env").write_text("LLM_PROVIDER=ollama\nLLM_MODEL=llama3.2\n", encoding="utf-8")
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+
+    def fake_init_chat_model(*args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return "model"
+
+    monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
+
+    agent_module.build_model(AgentConfig(model="nemotron3:33b", project_root=tmp_path))
+
+    assert captured["args"] == ("nemotron3:33b",)
+    assert captured["kwargs"]["model_provider"] == "ollama"
 
 
 def test_build_backend_falls_back_to_state_without_langsmith_key(monkeypatch) -> None:
@@ -100,7 +142,7 @@ def test_build_agent_passes_model_tools_prompt_middleware_and_backend(monkeypatc
     assert built == "agent"
     assert captured["model"].__class__ is FakeModel
     assert captured["tools"] == ["tool-a"]
-    assert "Kimi" in captured["system_prompt"]
+    assert "configured chat model" in captured["system_prompt"]
     assert captured["middleware"][0].__class__ is FakeMiddleware
     assert captured["backend"].__class__.__name__ == "StateBackend"
     assert "checkpointer" in captured

@@ -1,6 +1,6 @@
 # Deep Agents 0.6 CLI Lab
 
-A compact Python CLI sample for trying Deep Agents 0.6 with Moonshot `kimi-k2.6`.
+A compact Python CLI sample for trying Deep Agents 0.6 with an `.env`-configured LLM.
 
 The app demonstrates:
 
@@ -17,6 +17,21 @@ uv sync
 printf 'MOONSHOT_API_KEY=your-key-here\n' > .env
 ```
 
+Default Moonshot config:
+
+```env
+LLM_PROVIDER=moonshot
+LLM_MODEL=kimi-k2.6
+MOONSHOT_API_KEY=your-key-here
+```
+
+Local Ollama option:
+
+```env
+LLM_PROVIDER=ollama
+LLM_MODEL=nemotron3:33b
+```
+
 ## Run
 
 ```bash
@@ -25,9 +40,10 @@ uv run deepagents-06-lab --example --thread-id demo-001
 
 Generated reports are written to `reports/`.
 
-The app reads `MOONSHOT_API_KEY` from `.env` before creating the model with
-LangChain's `init_chat_model`. Use `--no-stream` only when you want a single final
-result; streaming is more useful for watching long runs progress.
+The app reads `LLM_PROVIDER`, `LLM_MODEL`, and provider credentials from `.env`
+before creating the model with LangChain's `init_chat_model`. Use `--no-stream`
+only when you want a single final result; streaming is more useful for watching
+long runs progress.
 
 Use a custom task:
 
@@ -53,7 +69,7 @@ If ContextHub or DeltaChannel APIs are unavailable in the installed packages, th
 
 ## Feature Map
 
-- `src/deepagents_06_lab/agent.py` configures `create_deep_agent`, Moonshot Kimi via `init_chat_model`, QuickJS interpreter middleware, backend selection, and checkpointing.
-- `src/deepagents_06_lab/prompts.py` contains the Kimi harness profile and JavaScript PTC instructions.
+- `src/deepagents_06_lab/agent.py` configures `create_deep_agent`, `.env`-driven `init_chat_model`, QuickJS interpreter middleware, backend selection, and checkpointing.
+- `src/deepagents_06_lab/prompts.py` contains model-neutral JavaScript PTC instructions.
 - `src/deepagents_06_lab/tools.py` exposes local tools that the interpreter can call programmatically.
 - `src/deepagents_06_lab/streaming.py` renders v3-style event dictionaries and falls back to `invoke`.

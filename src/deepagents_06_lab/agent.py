@@ -15,8 +15,8 @@ from deepagents_06_lab.tools import build_tools
 
 @dataclass(frozen=True)
 class AgentConfig:
-    model: str = "kimi-k2.6"
-    model_provider: str = "openai"
+    model: str | None = None
+    model_provider: str | None = None
     memory: str = "local"
     thread_id: str = "demo"
     project_root: Path = field(default_factory=lambda: Path.cwd())
@@ -40,17 +40,34 @@ def load_env_file(project_root: Path) -> None:
 
 def build_model(config: AgentConfig) -> Any:
     load_env_file(config.project_root)
+    configured_provider = (config.model_provider or os.getenv("LLM_PROVIDER") or "moonshot").lower()
+    model_provider = "openai" if configured_provider == "moonshot" else configured_provider
+    model = config.model or os.getenv("LLM_MODEL") or _default_model_for_provider(configured_provider)
+
+    if configured_provider == "ollama":
+        return init_chat_model(
+            model,
+            model_provider=model_provider,
+            temperature=0,
+        )
+
     moonshot_api_key = os.getenv("MOONSHOT_API_KEY")
     if not moonshot_api_key:
-        raise RuntimeError("MOONSHOT_API_KEY is required. Add it to .env or export it.")
+        raise RuntimeError("MOONSHOT_API_KEY is required for Moonshot. Add it to .env or export it.")
     return init_chat_model(
-        config.model,
-        model_provider=config.model_provider,
+        model,
+        model_provider=model_provider,
         api_key=moonshot_api_key,
         base_url="https://api.moonshot.ai/v1",
         temperature=0.6,
         extra_body={"thinking": {"type": "disabled"}},
     )
+
+
+def _default_model_for_provider(provider: str) -> str:
+    if provider == "ollama":
+        return "nemotron3:33b"
+    return "kimi-k2.6"
 
 
 def build_backend(config: AgentConfig) -> tuple[Any, str]:

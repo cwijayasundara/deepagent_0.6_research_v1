@@ -15,12 +15,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="deepagents-06-lab",
-        description="Run a Deep Agents 0.6 CLI demo with Moonshot Kimi.",
+        description="Run a Deep Agents 0.6 CLI demo with an .env-configured chat model.",
     )
     task_group = parser.add_mutually_exclusive_group()
     task_group.add_argument("--task", help="Task for the agent to run.")
     task_group.add_argument("--example", action="store_true", help="Run examples/task.txt.")
-    parser.add_argument("--model", default="kimi-k2.6", help="Moonshot/OpenAI-compatible model name.")
+    parser.add_argument("--model", help="Override LLM_MODEL from .env.")
     parser.add_argument("--thread-id", default="demo", help="Stable thread id for checkpointing.")
     parser.add_argument(
         "--memory",
