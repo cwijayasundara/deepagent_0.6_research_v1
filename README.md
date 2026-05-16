@@ -17,15 +17,25 @@ uv sync
 printf 'MOONSHOT_API_KEY=your-key-here\n' > .env
 ```
 
-Default Moonshot config:
+Use one switch to choose the LLM:
 
 ```env
-LLM_PROVIDER=moonshot
-LLM_MODEL=kimi-k2.6
+LLM_CHOICE=moonshot_kimi
 MOONSHOT_API_KEY=your-key-here
 ```
 
-Local Ollama option:
+or:
+
+```env
+LLM_CHOICE=ollama_nemotron
+```
+
+Supported `LLM_CHOICE` values:
+
+- `moonshot_kimi`: uses Moonshot `kimi-k2.6`.
+- `ollama_nemotron`: uses local Ollama `nemotron3:33b`.
+
+Advanced overrides are still available:
 
 ```env
 LLM_PROVIDER=ollama
@@ -40,10 +50,10 @@ uv run deepagents-06-lab --example --thread-id demo-001
 
 Generated reports are written to `reports/`.
 
-The app reads `LLM_PROVIDER`, `LLM_MODEL`, and provider credentials from `.env`
-before creating the model with LangChain's `init_chat_model`. Use `--no-stream`
-only when you want a single final result; streaming is more useful for watching
-long runs progress.
+The app reads `LLM_CHOICE`, optional `LLM_PROVIDER`/`LLM_MODEL` overrides, and
+provider credentials from `.env` before creating the model with LangChain's
+`init_chat_model`. Use `--no-stream` only when you want a single final result;
+streaming is more useful for watching long runs progress.
 
 Use a custom task:
 

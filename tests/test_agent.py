@@ -76,6 +76,76 @@ def test_build_model_uses_ollama_from_env(monkeypatch, tmp_path: Path) -> None:
     assert captured["kwargs"] == {"model_provider": "ollama", "temperature": 0}
 
 
+def test_build_model_uses_single_llm_choice_switch_for_ollama(monkeypatch, tmp_path: Path) -> None:
+    captured = {}
+    (tmp_path / ".env").write_text("LLM_CHOICE=ollama_nemotron\n", encoding="utf-8")
+    monkeypatch.delenv("LLM_CHOICE", raising=False)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+
+    def fake_init_chat_model(*args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return "model"
+
+    monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
+
+    model = agent_module.build_model(AgentConfig(project_root=tmp_path))
+
+    assert model == "model"
+    assert captured["args"] == ("nemotron3:33b",)
+    assert captured["kwargs"] == {"model_provider": "ollama", "temperature": 0}
+
+
+def test_build_model_uses_single_llm_choice_switch_for_moonshot(monkeypatch, tmp_path: Path) -> None:
+    captured = {}
+    (tmp_path / ".env").write_text(
+        "LLM_CHOICE=moonshot_kimi\nMOONSHOT_API_KEY=test-key\n",
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("LLM_CHOICE", raising=False)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    monkeypatch.delenv("MOONSHOT_API_KEY", raising=False)
+
+    def fake_init_chat_model(*args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return "model"
+
+    monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
+
+    model = agent_module.build_model(AgentConfig(project_root=tmp_path))
+
+    assert model == "model"
+    assert captured["args"] == ("kimi-k2.6",)
+    assert captured["kwargs"]["model_provider"] == "openai"
+    assert captured["kwargs"]["api_key"] == "test-key"
+
+
+def test_llm_provider_and_model_override_llm_choice(monkeypatch, tmp_path: Path) -> None:
+    captured = {}
+    (tmp_path / ".env").write_text(
+        "LLM_CHOICE=moonshot_kimi\nLLM_PROVIDER=ollama\nLLM_MODEL=nemotron3:33b\n",
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("LLM_CHOICE", raising=False)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+
+    def fake_init_chat_model(*args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return "model"
+
+    monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
+
+    agent_module.build_model(AgentConfig(project_root=tmp_path))
+
+    assert captured["args"] == ("nemotron3:33b",)
+    assert captured["kwargs"]["model_provider"] == "ollama"
+
+
 def test_build_model_cli_override_keeps_env_provider(monkeypatch, tmp_path: Path) -> None:
     captured = {}
     (tmp_path / ".env").write_text("LLM_PROVIDER=ollama\nLLM_MODEL=llama3.2\n", encoding="utf-8")

@@ -40,9 +40,10 @@ def load_env_file(project_root: Path) -> None:
 
 def build_model(config: AgentConfig) -> Any:
     load_env_file(config.project_root)
-    configured_provider = (config.model_provider or os.getenv("LLM_PROVIDER") or "moonshot").lower()
+    choice_provider, choice_model = _choice_defaults(os.getenv("LLM_CHOICE", "moonshot_kimi"))
+    configured_provider = (config.model_provider or os.getenv("LLM_PROVIDER") or choice_provider).lower()
     model_provider = "openai" if configured_provider == "moonshot" else configured_provider
-    model = config.model or os.getenv("LLM_MODEL") or _default_model_for_provider(configured_provider)
+    model = config.model or os.getenv("LLM_MODEL") or choice_model or _default_model_for_provider(configured_provider)
 
     if configured_provider == "ollama":
         return init_chat_model(
@@ -68,6 +69,17 @@ def _default_model_for_provider(provider: str) -> str:
     if provider == "ollama":
         return "nemotron3:33b"
     return "kimi-k2.6"
+
+
+def _choice_defaults(choice: str) -> tuple[str, str | None]:
+    normalized = choice.strip().lower().replace("-", "_")
+    choices: dict[str, tuple[str, str]] = {
+        "moonshot_kimi": ("moonshot", "kimi-k2.6"),
+        "kimi": ("moonshot", "kimi-k2.6"),
+        "ollama_nemotron": ("ollama", "nemotron3:33b"),
+        "nemotron": ("ollama", "nemotron3:33b"),
+    }
+    return choices.get(normalized, (normalized or "moonshot", None))
 
 
 def build_backend(config: AgentConfig) -> tuple[Any, str]:
