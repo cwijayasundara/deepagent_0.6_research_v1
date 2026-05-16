@@ -30,16 +30,23 @@ or:
 LLM_CHOICE=ollama_nemotron
 ```
 
+or:
+
+```env
+LLM_CHOICE=ollama_qwen
+```
+
 Supported `LLM_CHOICE` values:
 
 - `moonshot_kimi`: uses Moonshot `kimi-k2.6`.
 - `ollama_nemotron`: uses local Ollama `nemotron3:33b`.
+- `ollama_qwen`: uses local Ollama `qwen3.6:latest`.
 
 Advanced overrides are still available:
 
 ```env
 LLM_PROVIDER=ollama
-LLM_MODEL=nemotron3:33b
+LLM_MODEL=qwen3.6:latest
 ```
 
 ## Run

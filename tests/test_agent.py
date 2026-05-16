@@ -97,6 +97,47 @@ def test_build_model_uses_single_llm_choice_switch_for_ollama(monkeypatch, tmp_p
     assert captured["kwargs"] == {"model_provider": "ollama", "temperature": 0}
 
 
+def test_build_model_uses_single_llm_choice_switch_for_ollama_qwen(monkeypatch, tmp_path: Path) -> None:
+    captured = {}
+    (tmp_path / ".env").write_text("LLM_CHOICE=ollama_qwen\n", encoding="utf-8")
+    monkeypatch.delenv("LLM_CHOICE", raising=False)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+
+    def fake_init_chat_model(*args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return "model"
+
+    monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
+
+    model = agent_module.build_model(AgentConfig(project_root=tmp_path))
+
+    assert model == "model"
+    assert captured["args"] == ("qwen3.6:latest",)
+    assert captured["kwargs"] == {"model_provider": "ollama", "temperature": 0}
+
+
+def test_build_model_accepts_qwan_alias_for_qwen(monkeypatch, tmp_path: Path) -> None:
+    captured = {}
+    (tmp_path / ".env").write_text("LLM_CHOICE=ollama_qwan\n", encoding="utf-8")
+    monkeypatch.delenv("LLM_CHOICE", raising=False)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+
+    def fake_init_chat_model(*args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return "model"
+
+    monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
+
+    agent_module.build_model(AgentConfig(project_root=tmp_path))
+
+    assert captured["args"] == ("qwen3.6:latest",)
+    assert captured["kwargs"]["model_provider"] == "ollama"
+
+
 def test_build_model_uses_single_llm_choice_switch_for_moonshot(monkeypatch, tmp_path: Path) -> None:
     captured = {}
     (tmp_path / ".env").write_text(

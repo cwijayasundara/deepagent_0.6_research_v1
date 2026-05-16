@@ -78,6 +78,10 @@ def _choice_defaults(choice: str) -> tuple[str, str | None]:
         "kimi": ("moonshot", "kimi-k2.6"),
         "ollama_nemotron": ("ollama", "nemotron3:33b"),
         "nemotron": ("ollama", "nemotron3:33b"),
+        "ollama_qwen": ("ollama", "qwen3.6:latest"),
+        "qwen": ("ollama", "qwen3.6:latest"),
+        "ollama_qwan": ("ollama", "qwen3.6:latest"),
+        "qwan": ("ollama", "qwen3.6:latest"),
     }
     return choices.get(normalized, (normalized or "moonshot", None))
 
