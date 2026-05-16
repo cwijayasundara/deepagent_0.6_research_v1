@@ -90,3 +90,23 @@ If ContextHub or DeltaChannel APIs are unavailable in the installed packages, th
 - `src/deepagents_06_lab/prompts.py` contains model-neutral JavaScript PTC instructions.
 - `src/deepagents_06_lab/tools.py` exposes local tools that the interpreter can call programmatically.
 - `src/deepagents_06_lab/streaming.py` renders v3-style event dictionaries and falls back to `invoke`.
+
+## Deep Agents 0.6 Coverage
+
+This sample intentionally covers the major Deep Agents 0.6 concepts:
+
+| Concept | Where it is demonstrated |
+| --- | --- |
+| Code interpreter | `build_interpreter_middleware()` uses QuickJS `CodeInterpreterMiddleware` with PTC-enabled tools. |
+| Model-agnostic PTC | `prompts.py` instructs the model to use JavaScript `Promise.all`, recursive queues, and compact context returns. |
+| Recursive workflows | `prompts.py` includes a frontier queue pattern that calls subagents and feeds follow-up work back into the interpreter. |
+| Harness profiles | `register_sample_harness_profiles()` registers sample profiles for Moonshot Kimi, Ollama Nemotron, and Ollama Qwen. |
+| Streaming v3 | `run_with_streaming()` calls `stream_events(..., version="v3")` and extracts the final response. |
+| DeltaChannel | `build_checkpointer()` detects `langgraph.channels.delta.DeltaChannel` and `DeltaChannelHistory` while using checkpointing. |
+| ContextHubBackend | `build_backend(memory="context-hub")` selects `ContextHubBackend` when `LANGSMITH_API_KEY` is set. |
+
+Use ContextHub-backed memory:
+
+```bash
+LANGSMITH_API_KEY=... uv run deepagents-06-lab --example --memory context-hub
+```

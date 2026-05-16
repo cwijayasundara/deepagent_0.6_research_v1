@@ -138,6 +138,23 @@ def test_build_model_accepts_qwan_alias_for_qwen(monkeypatch, tmp_path: Path) ->
     assert captured["kwargs"]["model_provider"] == "ollama"
 
 
+def test_register_sample_harness_profiles(monkeypatch) -> None:
+    registered = {}
+
+    def fake_register_harness_profile(key, profile):
+        registered[key] = profile
+
+    monkeypatch.setattr(agent_module, "register_harness_profile", fake_register_harness_profile)
+
+    notes = agent_module.register_sample_harness_profiles()
+
+    assert "deepagents-06/ollama-qwen" in registered
+    assert "deepagents-06/ollama-nemotron" in registered
+    assert "deepagents-06/moonshot-kimi" in registered
+    assert "Harness profiles" in notes
+    assert "JavaScript" in registered["deepagents-06/ollama-qwen"].system_prompt_suffix
+
+
 def test_build_model_uses_single_llm_choice_switch_for_moonshot(monkeypatch, tmp_path: Path) -> None:
     captured = {}
     (tmp_path / ".env").write_text(
@@ -224,6 +241,16 @@ def test_build_backend_uses_context_hub_when_requested(monkeypatch) -> None:
     assert "ContextHubBackend" in note
 
 
+def test_feature_matrix_covers_deepagents_06_concepts() -> None:
+    matrix = agent_module.deepagents_06_feature_matrix()
+
+    assert matrix["code_interpreter"]["implemented_by"] == "CodeInterpreterMiddleware"
+    assert matrix["harness_profiles"]["implemented_by"] == "register_harness_profile"
+    assert matrix["streaming"]["implemented_by"] == "stream_events(version='v3')"
+    assert matrix["delta_channel"]["implemented_by"] == "langgraph.channels.delta.DeltaChannel"
+    assert matrix["context_hub_backend"]["implemented_by"] == "deepagents.backends.ContextHubBackend"
+
+
 def test_build_interpreter_middleware_uses_available_quickjs() -> None:
     middleware = agent_module.build_interpreter_middleware([])
 
@@ -247,6 +274,7 @@ def test_build_agent_passes_model_tools_prompt_middleware_and_backend(monkeypatc
     monkeypatch.setattr(agent_module, "build_tools", lambda project_root: ["tool-a"])
     monkeypatch.setattr(agent_module, "build_interpreter_middleware", lambda tools: FakeMiddleware())
     monkeypatch.setattr(agent_module, "create_deep_agent", fake_create_deep_agent)
+    monkeypatch.setattr(agent_module, "register_sample_harness_profiles", lambda: "profiles registered")
 
     built, notes = agent_module.build_agent(AgentConfig(project_root=tmp_path))
 
@@ -257,7 +285,7 @@ def test_build_agent_passes_model_tools_prompt_middleware_and_backend(monkeypatc
     assert captured["middleware"][0].__class__ is FakeMiddleware
     assert captured["backend"].__class__.__name__ == "StateBackend"
     assert "checkpointer" in captured
-    assert notes
+    assert "profiles registered" in notes
 
 
 def test_build_run_config_uses_thread_id() -> None:

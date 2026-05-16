@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from deepagents import create_deep_agent
+from deepagents.profiles import register_harness_profile
+from deepagents.profiles.harness.harness_profiles import HarnessProfile
 from langchain.chat_models import init_chat_model
 
 from deepagents_06_lab.prompts import SYSTEM_PROMPT
@@ -104,9 +106,10 @@ def build_checkpointer() -> tuple[Any, str]:
 
     note = "Using InMemorySaver checkpointing."
     try:
+        from langgraph.channels.delta import DeltaChannel  # noqa: F401
         from langgraph.checkpoint.memory import DeltaChannelHistory  # noqa: F401
 
-        note += " DeltaChannelHistory is available in this LangGraph install."
+        note += " DeltaChannel and DeltaChannelHistory are available in this LangGraph install."
     except Exception:
         note += " Delta channel helpers were not detected; using standard checkpoints."
     return InMemorySaver(), note
@@ -124,6 +127,7 @@ def build_interpreter_middleware(tools: list[Any]) -> Any:
 
 
 def build_agent(config: AgentConfig) -> tuple[Any, list[str]]:
+    profile_note = register_sample_harness_profiles()
     model = build_model(config)
     tools = build_tools(config.project_root)
     middleware = [build_interpreter_middleware(tools)]
@@ -148,8 +152,50 @@ def build_agent(config: AgentConfig) -> tuple[Any, list[str]]:
         if accepts_kwargs
         else {name: value for name, value in kwargs.items() if name in signature.parameters}
     )
-    return create_deep_agent(**supported), [backend_note, checkpoint_note]
+    return create_deep_agent(**supported), [profile_note, backend_note, checkpoint_note]
 
 
 def build_run_config(thread_id: str) -> dict[str, dict[str, str]]:
     return {"configurable": {"thread_id": thread_id}}
+
+
+def register_sample_harness_profiles() -> str:
+    suffix = (
+        "\nHarness profile guidance for Deep Agents 0.6 sample:\n"
+        "- Prefer concise JSON-shaped tool arguments.\n"
+        "- Use QuickJS JavaScript for PTC fan-out, filtering, and recursive queues.\n"
+        "- Return compact evidence to model context; keep intermediate state in the interpreter.\n"
+    )
+    profiles = {
+        "deepagents-06/moonshot-kimi": HarnessProfile(system_prompt_suffix=suffix),
+        "deepagents-06/ollama-nemotron": HarnessProfile(system_prompt_suffix=suffix),
+        "deepagents-06/ollama-qwen": HarnessProfile(system_prompt_suffix=suffix),
+    }
+    for key, profile in profiles.items():
+        register_harness_profile(key, profile)
+    return "Harness profiles registered for Moonshot Kimi, Ollama Nemotron, and Ollama Qwen."
+
+
+def deepagents_06_feature_matrix() -> dict[str, dict[str, str]]:
+    return {
+        "code_interpreter": {
+            "implemented_by": "CodeInterpreterMiddleware",
+            "where": "build_interpreter_middleware(ptc=tools)",
+        },
+        "harness_profiles": {
+            "implemented_by": "register_harness_profile",
+            "where": "register_sample_harness_profiles()",
+        },
+        "streaming": {
+            "implemented_by": "stream_events(version='v3')",
+            "where": "run_with_streaming()",
+        },
+        "delta_channel": {
+            "implemented_by": "langgraph.channels.delta.DeltaChannel",
+            "where": "build_checkpointer() feature detection",
+        },
+        "context_hub_backend": {
+            "implemented_by": "deepagents.backends.ContextHubBackend",
+            "where": "build_backend(memory='context-hub')",
+        },
+    }
