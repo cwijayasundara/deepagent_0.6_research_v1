@@ -1,0 +1,1 @@
+Analyze Northwind Robotics as an investment prospect. Use the local notes, calculate any useful percentages, ask follow-up questions through subagents when useful, and write a concise due-diligence report with evidence.
