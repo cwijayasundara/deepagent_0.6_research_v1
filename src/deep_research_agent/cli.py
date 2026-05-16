@@ -26,7 +26,15 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--async-subagents", action="store_true", help="Use AsyncSubAgent specs.")
     parser.add_argument("--stream", dest="stream", action="store_true", help="Use v3 event streaming.")
     parser.set_defaults(stream=False)
-    return parser.parse_args(argv)
+    args, extras = parser.parse_known_args(argv)
+    if extras:
+        args.topic = " ".join([args.topic, *extras])
+    args.topic = _normalize_topic(args.topic)
+    return args
+
+
+def _normalize_topic(topic: str) -> str:
+    return topic.strip().strip("\"'“”‘’").strip()
 
 
 def main(argv: Sequence[str] | None = None) -> int:

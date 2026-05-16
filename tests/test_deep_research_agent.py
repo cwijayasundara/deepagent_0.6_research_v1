@@ -153,6 +153,25 @@ def test_cli_parses_topic_and_async_subagents() -> None:
     assert args.stream is False
 
 
+def test_cli_accepts_topic_split_by_smart_quotes() -> None:
+    args = cli.parse_args(
+        [
+            "--topic",
+            "“AI",
+            "for",
+            "small",
+            "and",
+            "medium",
+            "business",
+            "market",
+            "in",
+            "2026”",
+        ]
+    )
+
+    assert args.topic == "AI for small and medium business market in 2026"
+
+
 def test_cli_prints_only_final_response(monkeypatch, tmp_path: Path, capsys) -> None:
     class Args:
         topic = "AI infrastructure"
