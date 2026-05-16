@@ -1,0 +1,29 @@
+[project]
+name = "deepagents-06-lab"
+version = "0.1.0"
+description = "Python CLI sample for Deep Agents 0.6 with Ollama Qwen, interpreter PTC, streaming, and memory."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "deepagents[quickjs]>=0.6",
+    "langchain-core>=1.0",
+    "langchain-ollama>=1.0",
+    "langgraph>=1.0",
+    "requests>=2.32",
+]
+
+[project.scripts]
+deepagents-06-lab = "deepagents_06_lab.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

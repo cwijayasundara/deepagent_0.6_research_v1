@@ -1,1 +1,8 @@
 .worktrees/
+.agent_state/
+.pytest_cache/
+.venv/
+__pycache__/
+*.pyc
+reports/
+uv.lock
