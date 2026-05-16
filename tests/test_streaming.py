@@ -1,4 +1,4 @@
-from deepagents_06_lab.streaming import render_event, run_with_streaming
+from deepagents_06_lab.streaming import extract_final_response, render_event, run_with_streaming
 
 
 def test_render_event_message_text_delta() -> None:
@@ -46,7 +46,21 @@ def test_run_with_streaming_prefers_stream_events(capsys) -> None:
     )
 
     assert result == {"output": "done"}
-    assert "hi" in capsys.readouterr().out
+    assert capsys.readouterr().out == ""
+
+
+def test_extract_final_response_uses_last_ai_message() -> None:
+    class FakeMessage:
+        def __init__(self, content):
+            self.content = content
+
+    result = {"messages": [FakeMessage("first"), FakeMessage("final")]}
+
+    assert extract_final_response(result) == "final"
+
+
+def test_extract_final_response_handles_output_mapping() -> None:
+    assert extract_final_response({"output": "done"}) == "done"
 
 
 def test_run_with_streaming_falls_back_to_invoke() -> None:

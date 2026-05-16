@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import warnings
 from pathlib import Path
 from typing import Sequence
 
 from deepagents_06_lab.agent import AgentConfig, build_agent, build_run_config
 from deepagents_06_lab.prompts import build_user_prompt
-from deepagents_06_lab.streaming import run_with_streaming
+from deepagents_06_lab.streaming import extract_final_response, run_with_streaming
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -42,6 +43,7 @@ def load_task(args: argparse.Namespace, project_root: Path = PROJECT_ROOT) -> st
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    _suppress_known_beta_warnings()
     args = parse_args(argv)
     task = load_task(args, PROJECT_ROOT)
 
@@ -51,16 +53,26 @@ def main(argv: Sequence[str] | None = None) -> int:
         thread_id=args.thread_id,
         project_root=PROJECT_ROOT,
     )
-    agent, notes = build_agent(config)
-    for note in notes:
-        print(f"[runtime] {note}")
+    agent, _notes = build_agent(config)
 
     payload = {"messages": [{"role": "user", "content": build_user_prompt(task)}]}
     run_config = build_run_config(args.thread_id)
     result = run_with_streaming(agent, payload, run_config, stream=args.stream)
-    if result is not None and not args.stream:
-        print(result)
+    final_response = extract_final_response(result)
+    if final_response:
+        print(final_response)
     return 0
+
+
+def _suppress_known_beta_warnings() -> None:
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*CodeInterpreterMiddleware.*beta.*",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*v3 streaming protocol.*experimental.*",
+    )
 
 
 if __name__ == "__main__":

@@ -49,9 +49,6 @@ def run_with_streaming(agent: Any, payload: dict[str, Any], config: dict[str, An
     try:
         events = agent.stream_events(payload, config=config, version="v3")
         for event in events:
-            rendered = render_event(event)
-            if rendered:
-                print(rendered, end="", flush=True)
             if isinstance(event, Mapping) and event.get("event") in {"final", "on_chain_end"}:
                 data = event.get("data", {})
                 if isinstance(data, Mapping):
@@ -60,3 +57,29 @@ def run_with_streaming(agent: Any, payload: dict[str, Any], config: dict[str, An
         return agent.invoke(payload, config=config)
 
     return {"output": final} if final is not None else None
+
+
+def extract_final_response(result: Any) -> str | None:
+    if result is None:
+        return None
+    if isinstance(result, str):
+        return result
+    if isinstance(result, Mapping):
+        output = result.get("output")
+        if output is not None:
+            return extract_final_response(output)
+        messages = result.get("messages")
+        if isinstance(messages, list):
+            for message in reversed(messages):
+                content = getattr(message, "content", None)
+                if isinstance(content, str) and content:
+                    return content
+                if isinstance(message, Mapping):
+                    mapped_content = message.get("content")
+                    if isinstance(mapped_content, str) and mapped_content:
+                        return mapped_content
+        return None
+    content = getattr(result, "content", None)
+    if isinstance(content, str) and content:
+        return content
+    return str(result)

@@ -67,3 +67,22 @@ def test_main_runs_agent(monkeypatch, tmp_path: Path) -> None:
     assert captured["payload"]["messages"][0]["content"].endswith("Task: Do work")
     assert captured["config"] == {"configurable": {"thread_id": "thread-1"}}
     assert captured["stream"] is False
+
+
+def test_main_prints_only_final_response(monkeypatch, tmp_path: Path, capsys) -> None:
+    class Args:
+        task = "Do work"
+        example = False
+        model = None
+        memory = "local"
+        thread_id = "thread-1"
+        stream = True
+
+    monkeypatch.setattr(cli, "parse_args", lambda argv=None: Args())
+    monkeypatch.setattr(cli, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(cli, "build_agent", lambda config: ("agent", ["runtime note"]))
+    monkeypatch.setattr(cli, "run_with_streaming", lambda agent, payload, config, stream: {"output": "final only"})
+
+    assert cli.main([]) == 0
+
+    assert capsys.readouterr().out == "final only\n"
