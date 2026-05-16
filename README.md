@@ -25,6 +25,18 @@ uv run deepagents-06-lab --example --thread-id demo-001
 
 Generated reports are written to `reports/`.
 
+Use a custom task:
+
+```bash
+uv run deepagents-06-lab --task "Analyze the product risk in the local notes"
+```
+
+Use synchronous invoke fallback instead of streaming:
+
+```bash
+uv run deepagents-06-lab --example --no-stream
+```
+
 ## Optional ContextHub Memory
 
 Set `LANGSMITH_API_KEY` and pass:
@@ -34,3 +46,10 @@ uv run deepagents-06-lab --example --memory context-hub
 ```
 
 If ContextHub or DeltaChannel APIs are unavailable in the installed packages, the app falls back to local state/checkpoint behavior and prints the limitation.
+
+## Feature Map
+
+- `src/deepagents_06_lab/agent.py` configures `create_deep_agent`, Ollama Qwen, QuickJS interpreter middleware, backend selection, and checkpointing.
+- `src/deepagents_06_lab/prompts.py` contains the Qwen harness profile and JavaScript PTC instructions.
+- `src/deepagents_06_lab/tools.py` exposes local tools that the interpreter can call programmatically.
+- `src/deepagents_06_lab/streaming.py` renders v3-style event dictionaries and falls back to `invoke`.
