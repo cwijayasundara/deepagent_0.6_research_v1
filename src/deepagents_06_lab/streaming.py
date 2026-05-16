@@ -56,7 +56,9 @@ def run_with_streaming(agent: Any, payload: dict[str, Any], config: dict[str, An
     except (AttributeError, TypeError, NotImplementedError):
         return agent.invoke(payload, config=config)
 
-    return {"output": final} if final is not None else None
+    if final is not None:
+        return {"output": final}
+    return agent.invoke(payload, config=config)
 
 
 def extract_final_response(result: Any) -> str | None:

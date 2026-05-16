@@ -44,7 +44,7 @@ def test_main_runs_agent(monkeypatch, tmp_path: Path) -> None:
     class Args:
         task = "Do work"
         example = False
-        model = "nemotron3:33b"
+        model = "qwen3.5:9b"
         memory = "local"
         thread_id = "thread-1"
         stream = False

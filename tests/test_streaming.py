@@ -78,3 +78,24 @@ def test_run_with_streaming_falls_back_to_invoke() -> None:
     )
 
     assert result == {"output": "done"}
+
+
+def test_run_with_streaming_falls_back_to_invoke_when_stream_has_no_final() -> None:
+    class FakeAgent:
+        def stream_events(self, payload, config=None, version=None):
+            assert version == "v3"
+            yield {"event": "messages", "data": {"delta": {"content": "partial"}}}
+
+        def invoke(self, payload, config=None):
+            assert payload == {"messages": []}
+            assert config == {"configurable": {"thread_id": "x"}}
+            return {"output": "done"}
+
+    result = run_with_streaming(
+        FakeAgent(),
+        {"messages": []},
+        {"configurable": {"thread_id": "x"}},
+        stream=True,
+    )
+
+    assert result == {"output": "done"}

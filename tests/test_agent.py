@@ -56,7 +56,7 @@ def test_build_model_uses_init_chat_model_with_moonshot_key(monkeypatch, tmp_pat
 def test_build_model_uses_ollama_from_env(monkeypatch, tmp_path: Path) -> None:
     captured = {}
     (tmp_path / ".env").write_text(
-        "LLM_PROVIDER=ollama\nLLM_MODEL=nemotron3:33b\n",
+        "LLM_PROVIDER=ollama\nLLM_MODEL=qwen3.5:9b\n",
         encoding="utf-8",
     )
     monkeypatch.delenv("LLM_PROVIDER", raising=False)
@@ -72,28 +72,7 @@ def test_build_model_uses_ollama_from_env(monkeypatch, tmp_path: Path) -> None:
     model = agent_module.build_model(AgentConfig(project_root=tmp_path))
 
     assert model == "model"
-    assert captured["args"] == ("nemotron3:33b",)
-    assert captured["kwargs"] == {"model_provider": "ollama", "temperature": 0}
-
-
-def test_build_model_uses_single_llm_choice_switch_for_ollama(monkeypatch, tmp_path: Path) -> None:
-    captured = {}
-    (tmp_path / ".env").write_text("LLM_CHOICE=ollama_nemotron\n", encoding="utf-8")
-    monkeypatch.delenv("LLM_CHOICE", raising=False)
-    monkeypatch.delenv("LLM_PROVIDER", raising=False)
-    monkeypatch.delenv("LLM_MODEL", raising=False)
-
-    def fake_init_chat_model(*args, **kwargs):
-        captured["args"] = args
-        captured["kwargs"] = kwargs
-        return "model"
-
-    monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
-
-    model = agent_module.build_model(AgentConfig(project_root=tmp_path))
-
-    assert model == "model"
-    assert captured["args"] == ("nemotron3:33b",)
+    assert captured["args"] == ("qwen3.5:9b",)
     assert captured["kwargs"] == {"model_provider": "ollama", "temperature": 0}
 
 
@@ -114,7 +93,7 @@ def test_build_model_uses_single_llm_choice_switch_for_ollama_qwen(monkeypatch, 
     model = agent_module.build_model(AgentConfig(project_root=tmp_path))
 
     assert model == "model"
-    assert captured["args"] == ("qwen3.6:latest",)
+    assert captured["args"] == ("qwen3.5:9b",)
     assert captured["kwargs"] == {"model_provider": "ollama", "temperature": 0}
 
 
@@ -134,7 +113,7 @@ def test_build_model_accepts_qwan_alias_for_qwen(monkeypatch, tmp_path: Path) ->
 
     agent_module.build_model(AgentConfig(project_root=tmp_path))
 
-    assert captured["args"] == ("qwen3.6:latest",)
+    assert captured["args"] == ("qwen3.5:9b",)
     assert captured["kwargs"]["model_provider"] == "ollama"
 
 
@@ -184,7 +163,7 @@ def test_build_model_uses_single_llm_choice_switch_for_moonshot(monkeypatch, tmp
 def test_llm_provider_and_model_override_llm_choice(monkeypatch, tmp_path: Path) -> None:
     captured = {}
     (tmp_path / ".env").write_text(
-        "LLM_CHOICE=moonshot_kimi\nLLM_PROVIDER=ollama\nLLM_MODEL=nemotron3:33b\n",
+        "LLM_CHOICE=moonshot_kimi\nLLM_PROVIDER=ollama\nLLM_MODEL=qwen3.5:9b\n",
         encoding="utf-8",
     )
     monkeypatch.delenv("LLM_CHOICE", raising=False)
@@ -200,7 +179,7 @@ def test_llm_provider_and_model_override_llm_choice(monkeypatch, tmp_path: Path)
 
     agent_module.build_model(AgentConfig(project_root=tmp_path))
 
-    assert captured["args"] == ("nemotron3:33b",)
+    assert captured["args"] == ("qwen3.5:9b",)
     assert captured["kwargs"]["model_provider"] == "ollama"
 
 
@@ -217,9 +196,9 @@ def test_build_model_cli_override_keeps_env_provider(monkeypatch, tmp_path: Path
 
     monkeypatch.setattr(agent_module, "init_chat_model", fake_init_chat_model)
 
-    agent_module.build_model(AgentConfig(model="nemotron3:33b", project_root=tmp_path))
+    agent_module.build_model(AgentConfig(model="qwen3.5:9b", project_root=tmp_path))
 
-    assert captured["args"] == ("nemotron3:33b",)
+    assert captured["args"] == ("qwen3.5:9b",)
     assert captured["kwargs"]["model_provider"] == "ollama"
 
 

@@ -69,7 +69,7 @@ def build_model(config: AgentConfig) -> Any:
 
 def _default_model_for_provider(provider: str) -> str:
     if provider == "ollama":
-        return "nemotron3:33b"
+        return "qwen3.5:9b"
     return "kimi-k2.6"
 
 
@@ -78,12 +78,10 @@ def _choice_defaults(choice: str) -> tuple[str, str | None]:
     choices: dict[str, tuple[str, str]] = {
         "moonshot_kimi": ("moonshot", "kimi-k2.6"),
         "kimi": ("moonshot", "kimi-k2.6"),
-        "ollama_nemotron": ("ollama", "nemotron3:33b"),
-        "nemotron": ("ollama", "nemotron3:33b"),
-        "ollama_qwen": ("ollama", "qwen3.6:latest"),
-        "qwen": ("ollama", "qwen3.6:latest"),
-        "ollama_qwan": ("ollama", "qwen3.6:latest"),
-        "qwan": ("ollama", "qwen3.6:latest"),
+        "ollama_qwen": ("ollama", "qwen3.5:9b"),
+        "qwen": ("ollama", "qwen3.5:9b"),
+        "ollama_qwan": ("ollama", "qwen3.5:9b"),
+        "qwan": ("ollama", "qwen3.5:9b"),
     }
     return choices.get(normalized, (normalized or "moonshot", None))
 

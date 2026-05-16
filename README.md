@@ -27,26 +27,19 @@ MOONSHOT_API_KEY=your-key-here
 or:
 
 ```env
-LLM_CHOICE=ollama_nemotron
-```
-
-or:
-
-```env
 LLM_CHOICE=ollama_qwen
 ```
 
 Supported `LLM_CHOICE` values:
 
 - `moonshot_kimi`: uses Moonshot `kimi-k2.6`.
-- `ollama_nemotron`: uses local Ollama `nemotron3:33b`.
-- `ollama_qwen`: uses local Ollama `qwen3.6:latest`.
+- `ollama_qwen`: uses local Ollama `qwen3.5:9b`.
 
 Advanced overrides are still available:
 
 ```env
 LLM_PROVIDER=ollama
-LLM_MODEL=qwen3.6:latest
+LLM_MODEL=qwen3.5:9b
 ```
 
 ## Run
