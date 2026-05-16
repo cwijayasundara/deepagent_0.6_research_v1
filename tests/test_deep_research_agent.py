@@ -151,3 +151,26 @@ def test_cli_parses_topic_and_async_subagents() -> None:
     assert args.topic == "AI infrastructure"
     assert args.async_subagents is True
     assert args.stream is False
+
+
+def test_cli_prints_only_final_response(monkeypatch, tmp_path: Path, capsys) -> None:
+    class Args:
+        topic = "AI infrastructure"
+        model = None
+        thread_id = "thread-1"
+        async_subagents = False
+        stream = False
+
+    monkeypatch.setattr(cli, "parse_args", lambda argv=None: Args())
+    monkeypatch.setattr(cli, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(cli, "build_agent", lambda config: ("agent", ["runtime note"]))
+
+    def noisy_run(agent, payload, config, stream):
+        print("Updated todo list to [{'content': 'Plan research', 'status': 'in_progress'}]")
+        return {"output": "final research report"}
+
+    monkeypatch.setattr(cli, "run_with_streaming", noisy_run)
+
+    assert cli.main([]) == 0
+
+    assert capsys.readouterr().out == "final research report\n"

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import warnings
 from pathlib import Path
 from typing import Sequence
@@ -37,7 +39,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     agent, _notes = build_agent(config)
     payload = {"messages": [{"role": "user", "content": build_user_prompt(args.topic)}]}
-    result = run_with_streaming(agent, payload, build_run_config(args.thread_id), stream=args.stream)
+    with contextlib.redirect_stdout(io.StringIO()):
+        result = run_with_streaming(agent, payload, build_run_config(args.thread_id), stream=args.stream)
     final_response = extract_final_response(result)
     if final_response:
         print(final_response)
@@ -51,4 +54,3 @@ def _suppress_known_beta_warnings() -> None:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
