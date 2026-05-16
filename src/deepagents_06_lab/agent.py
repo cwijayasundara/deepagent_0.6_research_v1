@@ -168,14 +168,12 @@ def register_sample_harness_profiles() -> str:
     )
     profiles = {
         "ollama": HarnessProfile(system_prompt_suffix=suffix),
-        "qwen3.6:latest": HarnessProfile(system_prompt_suffix=suffix),
         "qwen3.5:9b": HarnessProfile(system_prompt_suffix=suffix),
-        "nemotron3:33b": HarnessProfile(system_prompt_suffix=suffix),
         "openai:kimi-k2.6": HarnessProfile(system_prompt_suffix=suffix),
     }
     for key, profile in profiles.items():
         register_harness_profile(key, profile)
-    return "Harness profiles registered for Ollama, Qwen, Nemotron, and Moonshot Kimi."
+    return "Harness profiles registered for Ollama Qwen and Moonshot Kimi."
 
 
 def deepagents_06_feature_matrix() -> dict[str, dict[str, str]]:

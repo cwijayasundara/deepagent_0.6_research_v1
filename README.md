@@ -100,7 +100,7 @@ This sample intentionally covers the major Deep Agents 0.6 concepts:
 | Code interpreter | `build_interpreter_middleware()` uses QuickJS `CodeInterpreterMiddleware` with PTC-enabled tools. |
 | Model-agnostic PTC | `prompts.py` instructs the model to use JavaScript `Promise.all`, recursive queues, and compact context returns. |
 | Recursive workflows | `prompts.py` includes a frontier queue pattern that calls subagents and feeds follow-up work back into the interpreter. |
-| Harness profiles | `register_sample_harness_profiles()` registers canonical Deep Agents profile keys for `ollama`, Qwen/Nemotron model aliases, and Moonshot Kimi. |
+| Harness profiles | `register_sample_harness_profiles()` registers canonical Deep Agents profile keys for `ollama`, local Qwen, and Moonshot Kimi. |
 | Streaming v3 | `run_with_streaming()` calls `stream_events(..., version="v3")` and extracts the final response. |
 | DeltaChannel | `build_checkpointer()` detects `langgraph.channels.delta.DeltaChannel` and `DeltaChannelHistory` while using checkpointing. |
 | ContextHubBackend | `build_backend(memory="context-hub")` selects `ContextHubBackend` when `LANGSMITH_API_KEY` is set. |
