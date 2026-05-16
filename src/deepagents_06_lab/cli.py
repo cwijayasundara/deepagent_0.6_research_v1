@@ -29,8 +29,9 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default="local",
         help="Memory/backend mode.",
     )
+    parser.add_argument("--stream", dest="stream", action="store_true", help="Use v3 event streaming.")
     parser.add_argument("--no-stream", dest="stream", action="store_false", help="Use invoke fallback.")
-    parser.set_defaults(stream=True)
+    parser.set_defaults(stream=False)
     return parser.parse_args(argv)
 
 

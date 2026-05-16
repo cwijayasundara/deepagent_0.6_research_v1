@@ -5,24 +5,24 @@ import pytest
 from deepagents_06_lab import cli
 
 
-def test_parse_args_defaults_to_kimi_and_streaming() -> None:
+def test_parse_args_defaults_to_kimi_and_invoke() -> None:
     args = cli.parse_args(["--task", "Analyze this"])
 
     assert args.model is None
     assert args.task == "Analyze this"
-    assert args.stream is True
+    assert args.stream is False
     assert args.memory == "local"
 
 
-def test_parse_args_supports_example_thread_memory_and_no_stream() -> None:
+def test_parse_args_supports_example_thread_memory_and_stream() -> None:
     args = cli.parse_args(
-        ["--example", "--thread-id", "abc", "--memory", "context-hub", "--no-stream"]
+        ["--example", "--thread-id", "abc", "--memory", "context-hub", "--stream"]
     )
 
     assert args.example is True
     assert args.thread_id == "abc"
     assert args.memory == "context-hub"
-    assert args.stream is False
+    assert args.stream is True
 
 
 def test_load_task_reads_example(tmp_path: Path) -> None:

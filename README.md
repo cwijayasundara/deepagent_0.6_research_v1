@@ -52,8 +52,9 @@ Generated reports are written to `reports/`.
 
 The app reads `LLM_CHOICE`, optional `LLM_PROVIDER`/`LLM_MODEL` overrides, and
 provider credentials from `.env` before creating the model with LangChain's
-`init_chat_model`. Use `--no-stream` only when you want a single final result;
-streaming is more useful for watching long runs progress.
+`init_chat_model`. The CLI defaults to synchronous invoke for reliable final
+responses with local Ollama models. Use `--stream` when you specifically want
+to exercise v3 event streaming.
 
 Use a custom task:
 
@@ -61,10 +62,10 @@ Use a custom task:
 uv run deepagents-06-lab --task "Analyze the product risk in the local notes"
 ```
 
-Use synchronous invoke fallback instead of streaming:
+Use v3 event streaming:
 
 ```bash
-uv run deepagents-06-lab --example --no-stream
+uv run deepagents-06-lab --example --stream
 ```
 
 ## Optional ContextHub Memory

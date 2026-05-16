@@ -46,19 +46,42 @@ def run_with_streaming(agent: Any, payload: dict[str, Any], config: dict[str, An
         return agent.invoke(payload, config=config)
 
     final: Any = None
+    streamed_text: list[str] = []
     try:
         events = agent.stream_events(payload, config=config, version="v3")
         for event in events:
-            if isinstance(event, Mapping) and event.get("event") in {"final", "on_chain_end"}:
-                data = event.get("data", {})
-                if isinstance(data, Mapping):
-                    final = data.get("output") or data.get("result")
+            if not isinstance(event, Mapping):
+                continue
+            event_name = event.get("event")
+            data = event.get("data", {})
+            if not isinstance(data, Mapping):
+                data = {}
+            if event_name in {"messages", "on_chat_model_stream"}:
+                chunk = _extract_stream_chunk(data)
+                if chunk:
+                    streamed_text.append(chunk)
+            output = data.get("output") or data.get("result")
+            if output is not None:
+                final = output
     except (AttributeError, TypeError, NotImplementedError):
         return agent.invoke(payload, config=config)
 
     if final is not None:
         return {"output": final}
-    return agent.invoke(payload, config=config)
+    if streamed_text:
+        return {"output": "".join(streamed_text).strip()}
+    return {"output": "The agent run completed, but streaming did not emit a final response."}
+
+
+def _extract_stream_chunk(data: Mapping[str, Any]) -> str | None:
+    delta = data.get("delta") or data.get("chunk") or {}
+    if isinstance(delta, Mapping):
+        content = delta.get("content")
+        if isinstance(content, str):
+            return content
+    if isinstance(delta, str):
+        return delta
+    return None
 
 
 def extract_final_response(result: Any) -> str | None:
