@@ -25,6 +25,10 @@ uv run deepagents-06-lab --example --thread-id demo-001
 
 Generated reports are written to `reports/`.
 
+Local 36B Qwen runs can take several minutes, especially on the first prompt. Use
+`--no-stream` only when you want a single final result; streaming is more useful for
+watching long runs progress.
+
 Use a custom task:
 
 ```bash
