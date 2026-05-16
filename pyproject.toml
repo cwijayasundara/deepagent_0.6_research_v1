@@ -14,6 +14,7 @@ dependencies = [
 
 [project.scripts]
 deepagents-06-lab = "deepagents_06_lab.cli:main"
+deep-research-agent = "deep_research_agent.cli:main"
 
 [dependency-groups]
 dev = [

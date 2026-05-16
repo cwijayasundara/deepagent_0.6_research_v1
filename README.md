@@ -104,3 +104,39 @@ Use ContextHub-backed memory:
 ```bash
 LANGSMITH_API_KEY=... uv run deepagents-06-lab --example --memory context-hub
 ```
+
+## Deep Research Agent
+
+The repo also includes a SerpApi-backed deep research agent under
+`src/deep_research_agent`. It uses the same Deep Agents 0.6 building blocks in
+a more realistic research workflow:
+
+- The supervisor creates a research plan and todo list.
+- Async subagent specs model long-running `researcher`, `critic`, and
+  `synthesizer` tracks.
+- The interpreter enables programmatic tool calling for SerpApi fan-out,
+  filtering, deduplication, and recursive frontier queues.
+- Skills encode reusable research planning, source quality, citation dedup, and
+  report synthesis rules.
+
+Configure SerpApi:
+
+```env
+SERPAPI_API_KEY=your-serpapi-key
+LLM_PROVIDER=ollama
+LLM_MODEL=qwen3.5:9b
+```
+
+Run a local synchronous-subagent research task:
+
+```bash
+uv run deep-research-agent --topic "AI infrastructure market in 2026"
+```
+
+Exercise async subagent specs:
+
+```bash
+uv run deep-research-agent --topic "AI infrastructure market in 2026" --async-subagents
+```
+
+Use `--stream` only when you specifically want to inspect v3 streaming behavior.
