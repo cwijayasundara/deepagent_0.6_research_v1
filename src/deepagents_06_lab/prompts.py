@@ -2,14 +2,14 @@ from __future__ import annotations
 
 
 QWEN_HARNESS_PROFILE = {
-    "name": "ollama-qwen3.6-local",
-    "model_family": "qwen",
+    "name": "moonshot-kimi-k2.6",
+    "model_family": "kimi",
     "tool_style": "Use concise JSON-shaped tool arguments and keep tool outputs compact.",
     "context_policy": "Return compact evidence, not raw intermediate dumps.",
 }
 
 
-SYSTEM_PROMPT = """You are a Deep Agents 0.6 research agent running on Qwen through Ollama.
+SYSTEM_PROMPT = """You are a Deep Agents 0.6 research agent running on Kimi through Moonshot.
 
 Use the local tools and the QuickJS code interpreter as your working runtime. Prefer
 interpreter-side JavaScript for programmatic tool calling when multiple tool calls,

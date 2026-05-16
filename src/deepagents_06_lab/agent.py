@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from deepagents import create_deep_agent
-from langchain_ollama import ChatOllama
+from langchain.chat_models import init_chat_model
 
 from deepagents_06_lab.prompts import SYSTEM_PROMPT
 from deepagents_06_lab.tools import build_tools
@@ -15,14 +15,41 @@ from deepagents_06_lab.tools import build_tools
 
 @dataclass(frozen=True)
 class AgentConfig:
-    model: str = "qwen3.6:latest"
+    model: str = "kimi-k2.6"
+    model_provider: str = "openai"
     memory: str = "local"
     thread_id: str = "demo"
     project_root: Path = field(default_factory=lambda: Path.cwd())
 
 
+def load_env_file(project_root: Path) -> None:
+    env_file = project_root / ".env"
+    if not env_file.exists():
+        return
+
+    for raw_line in env_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
 def build_model(config: AgentConfig) -> Any:
-    return ChatOllama(model=config.model, temperature=0)
+    load_env_file(config.project_root)
+    moonshot_api_key = os.getenv("MOONSHOT_API_KEY")
+    if not moonshot_api_key:
+        raise RuntimeError("MOONSHOT_API_KEY is required. Add it to .env or export it.")
+    return init_chat_model(
+        config.model,
+        model_provider=config.model_provider,
+        api_key=moonshot_api_key,
+        base_url="https://api.moonshot.ai/v1",
+        temperature=0,
+    )
 
 
 def build_backend(config: AgentConfig) -> tuple[Any, str]:

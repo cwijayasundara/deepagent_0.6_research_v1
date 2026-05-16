@@ -1,11 +1,11 @@
 from deepagents_06_lab.prompts import QWEN_HARNESS_PROFILE, SYSTEM_PROMPT, build_user_prompt
 
 
-def test_system_prompt_names_qwen_and_ollama() -> None:
+def test_system_prompt_names_kimi_and_moonshot() -> None:
     text = SYSTEM_PROMPT.lower()
 
-    assert "qwen" in text
-    assert "ollama" in text
+    assert "kimi" in text
+    assert "moonshot" in text
 
 
 def test_system_prompt_requires_interpreter_side_ptc() -> None:
@@ -33,10 +33,10 @@ def test_system_prompt_limits_returned_context_and_requires_report() -> None:
     assert "tools.write_report" in text
 
 
-def test_qwen_profile_sets_conservative_harness_rules() -> None:
+def test_kimi_profile_sets_conservative_harness_rules() -> None:
     profile = QWEN_HARNESS_PROFILE
 
-    assert profile["model_family"] == "qwen"
+    assert profile["model_family"] == "kimi"
     assert "concise" in profile["tool_style"]
     assert "json" in profile["tool_style"].lower()
 

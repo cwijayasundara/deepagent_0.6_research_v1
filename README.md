@@ -1,6 +1,6 @@
 # Deep Agents 0.6 CLI Lab
 
-A compact Python CLI sample for trying Deep Agents 0.6 with local Ollama model `qwen3.6:latest`.
+A compact Python CLI sample for trying Deep Agents 0.6 with Moonshot `kimi-k2.6`.
 
 The app demonstrates:
 
@@ -14,7 +14,7 @@ The app demonstrates:
 
 ```bash
 uv sync
-ollama pull qwen3.6:latest
+printf 'MOONSHOT_API_KEY=your-key-here\n' > .env
 ```
 
 ## Run
@@ -25,9 +25,9 @@ uv run deepagents-06-lab --example --thread-id demo-001
 
 Generated reports are written to `reports/`.
 
-Local 36B Qwen runs can take several minutes, especially on the first prompt. Use
-`--no-stream` only when you want a single final result; streaming is more useful for
-watching long runs progress.
+The app reads `MOONSHOT_API_KEY` from `.env` before creating the model with
+LangChain's `init_chat_model`. Use `--no-stream` only when you want a single final
+result; streaming is more useful for watching long runs progress.
 
 Use a custom task:
 
@@ -53,7 +53,7 @@ If ContextHub or DeltaChannel APIs are unavailable in the installed packages, th
 
 ## Feature Map
 
-- `src/deepagents_06_lab/agent.py` configures `create_deep_agent`, Ollama Qwen, QuickJS interpreter middleware, backend selection, and checkpointing.
-- `src/deepagents_06_lab/prompts.py` contains the Qwen harness profile and JavaScript PTC instructions.
+- `src/deepagents_06_lab/agent.py` configures `create_deep_agent`, Moonshot Kimi via `init_chat_model`, QuickJS interpreter middleware, backend selection, and checkpointing.
+- `src/deepagents_06_lab/prompts.py` contains the Kimi harness profile and JavaScript PTC instructions.
 - `src/deepagents_06_lab/tools.py` exposes local tools that the interpreter can call programmatically.
 - `src/deepagents_06_lab/streaming.py` renders v3-style event dictionaries and falls back to `invoke`.

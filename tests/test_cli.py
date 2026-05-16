@@ -5,10 +5,10 @@ import pytest
 from deepagents_06_lab import cli
 
 
-def test_parse_args_defaults_to_qwen_and_streaming() -> None:
+def test_parse_args_defaults_to_kimi_and_streaming() -> None:
     args = cli.parse_args(["--task", "Analyze this"])
 
-    assert args.model == "qwen3.6:latest"
+    assert args.model == "kimi-k2.6"
     assert args.task == "Analyze this"
     assert args.stream is True
     assert args.memory == "local"
@@ -38,64 +38,18 @@ def test_load_task_requires_task_or_example(tmp_path: Path) -> None:
         cli.load_task(cli.parse_args([]), tmp_path)
 
 
-def test_check_ollama_model_accepts_installed_model(monkeypatch) -> None:
-    class FakeResponse:
-        def raise_for_status(self) -> None:
-            return None
-
-        def json(self):
-            return {"models": [{"name": "qwen3.6:latest"}]}
-
-    monkeypatch.setattr(cli.requests, "get", lambda url, timeout: FakeResponse())
-
-    ok, message = cli.check_ollama_model("qwen3.6:latest")
-
-    assert ok is True
-    assert "available" in message
-
-
-def test_check_ollama_model_reports_missing_model(monkeypatch) -> None:
-    class FakeResponse:
-        def raise_for_status(self) -> None:
-            return None
-
-        def json(self):
-            return {"models": [{"name": "llama3.2:latest"}]}
-
-    monkeypatch.setattr(cli.requests, "get", lambda url, timeout: FakeResponse())
-
-    ok, message = cli.check_ollama_model("qwen3.6:latest")
-
-    assert ok is False
-    assert "ollama pull qwen3.6:latest" in message
-
-
-def test_check_ollama_model_reports_connection_failure(monkeypatch) -> None:
-    def fail(url, timeout):
-        raise cli.requests.RequestException("offline")
-
-    monkeypatch.setattr(cli.requests, "get", fail)
-
-    ok, message = cli.check_ollama_model("qwen3.6:latest")
-
-    assert ok is False
-    assert "Ollama is not reachable" in message
-
-
 def test_main_runs_agent(monkeypatch, tmp_path: Path) -> None:
     captured = {}
 
     class Args:
         task = "Do work"
         example = False
-        model = "qwen3.6:latest"
+        model = "kimi-k2.6"
         memory = "local"
         thread_id = "thread-1"
         stream = False
-        skip_ollama_check = False
 
     monkeypatch.setattr(cli, "parse_args", lambda argv=None: Args())
-    monkeypatch.setattr(cli, "check_ollama_model", lambda model: (True, "available"))
     monkeypatch.setattr(cli, "PROJECT_ROOT", tmp_path)
     monkeypatch.setattr(cli, "build_agent", lambda config: ("agent", ["note"]))
 

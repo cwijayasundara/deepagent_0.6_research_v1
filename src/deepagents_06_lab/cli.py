@@ -4,26 +4,23 @@ import argparse
 from pathlib import Path
 from typing import Sequence
 
-import requests
-
 from deepagents_06_lab.agent import AgentConfig, build_agent, build_run_config
 from deepagents_06_lab.prompts import build_user_prompt
 from deepagents_06_lab.streaming import run_with_streaming
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-OLLAMA_TAGS_URL = "http://localhost:11434/api/tags"
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="deepagents-06-lab",
-        description="Run a Deep Agents 0.6 CLI demo with Ollama Qwen.",
+        description="Run a Deep Agents 0.6 CLI demo with Moonshot Kimi.",
     )
     task_group = parser.add_mutually_exclusive_group()
     task_group.add_argument("--task", help="Task for the agent to run.")
     task_group.add_argument("--example", action="store_true", help="Run examples/task.txt.")
-    parser.add_argument("--model", default="qwen3.6:latest", help="Ollama model name.")
+    parser.add_argument("--model", default="kimi-k2.6", help="Moonshot/OpenAI-compatible model name.")
     parser.add_argument("--thread-id", default="demo", help="Stable thread id for checkpointing.")
     parser.add_argument(
         "--memory",
@@ -32,11 +29,6 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Memory/backend mode.",
     )
     parser.add_argument("--no-stream", dest="stream", action="store_false", help="Use invoke fallback.")
-    parser.add_argument(
-        "--skip-ollama-check",
-        action="store_true",
-        help="Skip the local Ollama /api/tags validation.",
-    )
     parser.set_defaults(stream=True)
     return parser.parse_args(argv)
 
@@ -49,28 +41,9 @@ def load_task(args: argparse.Namespace, project_root: Path = PROJECT_ROOT) -> st
     raise SystemExit("Provide --task or --example.")
 
 
-def check_ollama_model(model: str) -> tuple[bool, str]:
-    try:
-        response = requests.get(OLLAMA_TAGS_URL, timeout=2)
-        response.raise_for_status()
-    except requests.RequestException as exc:
-        return False, f"Ollama is not reachable at {OLLAMA_TAGS_URL}: {exc}"
-
-    names = {item.get("name") for item in response.json().get("models", [])}
-    if model in names:
-        return True, f"Ollama model {model} is available."
-    return False, f"Ollama model {model} is missing. Run: ollama pull {model}"
-
-
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     task = load_task(args, PROJECT_ROOT)
-
-    if not args.skip_ollama_check:
-        ok, message = check_ollama_model(args.model)
-        print(message)
-        if not ok:
-            return 2
 
     config = AgentConfig(
         model=args.model,
