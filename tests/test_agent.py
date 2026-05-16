@@ -49,7 +49,8 @@ def test_build_model_uses_init_chat_model_with_moonshot_key(monkeypatch, tmp_pat
     assert captured["kwargs"]["model_provider"] == "openai"
     assert captured["kwargs"]["api_key"] == "test-key"
     assert captured["kwargs"]["base_url"] == "https://api.moonshot.ai/v1"
-    assert captured["kwargs"]["temperature"] == 0
+    assert captured["kwargs"]["temperature"] == 0.6
+    assert captured["kwargs"]["extra_body"] == {"thinking": {"type": "disabled"}}
 
 
 def test_build_backend_falls_back_to_state_without_langsmith_key(monkeypatch) -> None:

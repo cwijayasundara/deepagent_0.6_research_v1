@@ -48,7 +48,8 @@ def build_model(config: AgentConfig) -> Any:
         model_provider=config.model_provider,
         api_key=moonshot_api_key,
         base_url="https://api.moonshot.ai/v1",
-        temperature=0,
+        temperature=0.6,
+        extra_body={"thinking": {"type": "disabled"}},
     )
 
 
