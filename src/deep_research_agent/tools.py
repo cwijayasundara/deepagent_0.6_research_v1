@@ -21,7 +21,11 @@ class DeepResearchRuntime:
 
     def search_web(self, query: str, max_results: int = 5) -> str:
         """Search Google through SerpApi and return compact cited results."""
-        results = self.serpapi.search(query, max_results=max_results)
+        max_results = min(max_results, 5)
+        try:
+            results = self.serpapi.search(query, max_results=max_results)
+        except Exception as exc:
+            return f"SerpApi search failed for {query!r}: {exc}"
         if not results:
             return f"No SerpApi organic results for {query!r}."
         lines: list[str] = []
@@ -60,4 +64,3 @@ class DeepResearchRuntime:
 
 def build_tools(project_root: Path, serpapi_client: SerpApiClient) -> list[Any]:
     return DeepResearchRuntime(project_root, serpapi_client).build_tools()
-

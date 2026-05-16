@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import urllib.parse
 import urllib.request
+from urllib.error import HTTPError, URLError
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -76,6 +77,10 @@ class SerpApiClient:
 def _urllib_get_json(url: str, params: dict[str, Any], timeout: float) -> Mapping[str, Any]:
     query = urllib.parse.urlencode(params)
     request = urllib.request.Request(f"{url}?{query}", headers={"User-Agent": "deep-research-agent/0.1"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
-
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        raise RuntimeError(f"HTTP {exc.code} from SerpApi. Check SERPAPI_API_KEY.") from exc
+    except URLError as exc:
+        raise RuntimeError(f"Could not reach SerpApi: {exc.reason}") from exc

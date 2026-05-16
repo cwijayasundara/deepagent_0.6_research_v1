@@ -111,7 +111,7 @@ The repo also includes a SerpApi-backed deep research agent under
 `src/deep_research_agent`. It uses the same Deep Agents 0.6 building blocks in
 a more realistic research workflow:
 
-- The supervisor creates a research plan and todo list.
+- The supervisor creates an internal research plan.
 - Async subagent specs model long-running `researcher`, `critic`, and
   `synthesizer` tracks.
 - The interpreter enables programmatic tool calling for SerpApi fan-out,
@@ -123,14 +123,20 @@ Configure SerpApi:
 
 ```env
 SERPAPI_API_KEY=your-serpapi-key
-LLM_PROVIDER=ollama
-LLM_MODEL=qwen3.5:9b
+LLM_CHOICE=moonshot_kimi
+MOONSHOT_API_KEY=your-moonshot-key
 ```
 
-Run a local synchronous-subagent research task:
+Run a bounded supervisor-only research task:
 
 ```bash
 uv run deep-research-agent --topic "AI infrastructure market in 2026"
+```
+
+Use local synchronous subagents:
+
+```bash
+uv run deep-research-agent --topic "AI infrastructure market in 2026" --sync-subagents
 ```
 
 Exercise async subagent specs:

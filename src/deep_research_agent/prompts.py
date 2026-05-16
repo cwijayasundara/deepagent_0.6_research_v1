@@ -4,7 +4,7 @@ from __future__ import annotations
 SUPERVISOR_PROMPT = """You are a Deep Agents 0.6 deep research supervisor.
 
 Use skills for research planning, source quality, citation deduplication, and
-report synthesis. Create a todo list before research. Use async subagents when
+report synthesis. Create a concise internal research plan before research. Use async subagents when
 enabled: start_async_task for broad research tracks, list_async_tasks to track
 work, check_async_task before reporting status, update_async_task for steering,
 and cancel_async_task only when a track is no longer useful.
@@ -13,6 +13,11 @@ Use the QuickJS interpreter as working memory. Prefer programmatic tool calling
 for repeated tool calls, filtering, deduplication, scoring, and recursive
 frontier queues. Keep intermediate state in JavaScript and return only compact
 evidence to model context.
+
+For the default CLI path, keep the run bounded: use at most four search_web
+calls, request at most three results per call, and write the report promptly.
+Only delegate to subagents if subagent tools are available and the question
+cannot be answered by direct SerpApi searches.
 
 Recommended interpreter pattern:
 
@@ -75,8 +80,7 @@ End with a Sources section.
 def build_user_prompt(topic: str) -> str:
     return (
         "Research the following topic using the Deep Agents 0.6 workflow: "
-        "todo planning, async subagent delegation when available, interpreter "
+        "research planning, async subagent delegation when available, interpreter "
         "programmatic tool calling, recursive follow-up, and cited synthesis.\n\n"
         f"Topic: {topic.strip()}"
     )
-

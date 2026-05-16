@@ -96,6 +96,8 @@ def extract_final_response(result: Any) -> str | None:
         messages = result.get("messages")
         if isinstance(messages, list):
             for message in reversed(messages):
+                if not _is_assistant_message(message):
+                    continue
                 content = getattr(message, "content", None)
                 if isinstance(content, str) and content:
                     return content
@@ -108,3 +110,10 @@ def extract_final_response(result: Any) -> str | None:
     if isinstance(content, str) and content:
         return content
     return str(result)
+
+
+def _is_assistant_message(message: Any) -> bool:
+    message_type = getattr(message, "type", None)
+    if message_type is None and isinstance(message, Mapping):
+        message_type = message.get("type") or message.get("role")
+    return message_type in {None, "ai", "assistant"}

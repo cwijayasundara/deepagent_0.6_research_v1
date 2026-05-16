@@ -51,12 +51,41 @@ def test_run_with_streaming_prefers_stream_events(capsys) -> None:
 
 def test_extract_final_response_uses_last_ai_message() -> None:
     class FakeMessage:
+        type = "ai"
+
         def __init__(self, content):
             self.content = content
 
     result = {"messages": [FakeMessage("first"), FakeMessage("final")]}
 
     assert extract_final_response(result) == "final"
+
+
+def test_extract_final_response_skips_tool_messages() -> None:
+    result = {
+        "messages": [
+            {"type": "ai", "content": "final research report"},
+            {
+                "type": "tool",
+                "content": "Updated todo list to [{'content': 'Plan research'}]",
+            },
+        ]
+    }
+
+    assert extract_final_response(result) == "final research report"
+
+
+def test_extract_final_response_returns_none_for_only_tool_messages() -> None:
+    result = {
+        "messages": [
+            {
+                "type": "tool",
+                "content": "Updated todo list to [{'content': 'Plan research'}]",
+            },
+        ]
+    }
+
+    assert extract_final_response(result) is None
 
 
 def test_extract_final_response_handles_output_mapping() -> None:

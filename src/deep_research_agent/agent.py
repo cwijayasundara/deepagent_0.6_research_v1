@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from deepagents import AsyncSubAgent, SubAgent, create_deep_agent
+from deepagents.profiles import register_harness_profile
+from deepagents.profiles.harness.harness_profiles import HarnessProfile
 from langchain.chat_models import init_chat_model
 
 from deep_research_agent.prompts import CRITIC_PROMPT, RESEARCHER_PROMPT, SUPERVISOR_PROMPT, SYNTHESIZER_PROMPT
@@ -20,6 +22,7 @@ class DeepResearchConfig:
     model_provider: str | None = None
     project_root: Path = field(default_factory=lambda: Path.cwd())
     async_subagents: bool = False
+    sync_subagents: bool = False
 
 
 def load_env_file(project_root: Path) -> None:
@@ -37,11 +40,13 @@ def load_env_file(project_root: Path) -> None:
 
 def build_model(config: DeepResearchConfig) -> Any:
     load_env_file(config.project_root)
-    provider = (config.model_provider or os.getenv("LLM_PROVIDER") or "ollama").lower()
-    model = config.model or os.getenv("LLM_MODEL") or "qwen3.5:9b"
+    choice_provider, choice_model = _choice_defaults(os.getenv("LLM_CHOICE", "moonshot_kimi"))
+    configured_provider = (config.model_provider or os.getenv("LLM_PROVIDER") or choice_provider).lower()
+    provider = "openai" if configured_provider == "moonshot" else configured_provider
+    model = config.model or os.getenv("LLM_MODEL") or choice_model
     if provider == "ollama":
         return init_chat_model(model, model_provider="ollama", temperature=0)
-    if provider == "moonshot":
+    if configured_provider == "moonshot":
         api_key = os.getenv("MOONSHOT_API_KEY")
         if not api_key:
             raise RuntimeError("MOONSHOT_API_KEY is required for Moonshot.")
@@ -54,6 +59,19 @@ def build_model(config: DeepResearchConfig) -> Any:
             extra_body={"thinking": {"type": "disabled"}},
         )
     return init_chat_model(model, model_provider=provider, temperature=0)
+
+
+def _choice_defaults(choice: str) -> tuple[str, str]:
+    normalized = choice.strip().lower().replace("-", "_")
+    choices = {
+        "moonshot_kimi": ("moonshot", "kimi-k2.6"),
+        "kimi": ("moonshot", "kimi-k2.6"),
+        "ollama_qwen": ("ollama", "qwen3.5:9b"),
+        "qwen": ("ollama", "qwen3.5:9b"),
+        "ollama_qwan": ("ollama", "qwen3.5:9b"),
+        "qwan": ("ollama", "qwen3.5:9b"),
+    }
+    return choices.get(normalized, (normalized or "moonshot", "kimi-k2.6"))
 
 
 def build_serpapi_client(config: DeepResearchConfig) -> SerpApiClient:
@@ -124,10 +142,19 @@ def build_skill_paths(project_root: Path) -> list[str]:
 
 
 def build_agent(config: DeepResearchConfig) -> tuple[Any, list[str]]:
+    profile_note = register_deep_research_harness_profiles()
     model = build_model(config)
     tools = build_tools(config.project_root, build_serpapi_client(config))
     middleware = [build_interpreter_middleware(tools)]
-    subagents = build_async_subagents() if config.async_subagents else build_sync_subagents(tools)
+    if config.async_subagents:
+        subagents: list[Any] = build_async_subagents()
+        subagent_note = "Using async subagents."
+    elif config.sync_subagents:
+        subagents = build_sync_subagents(tools)
+        subagent_note = "Using synchronous local subagents."
+    else:
+        subagents = []
+        subagent_note = "Using supervisor-only bounded research; pass --sync-subagents or --async-subagents to delegate."
     kwargs: dict[str, Any] = {
         "model": model,
         "tools": tools,
@@ -147,11 +174,25 @@ def build_agent(config: DeepResearchConfig) -> tuple[Any, list[str]]:
         else {name: value for name, value in kwargs.items() if name in signature.parameters}
     )
     return create_deep_agent(**supported), [
+        profile_note,
         "Using SerpApi Google search.",
         "Using interpreter PTC for search fan-out and recursive frontier queues.",
-        "Using async subagents." if config.async_subagents else "Using synchronous local subagents.",
+        subagent_note,
     ]
 
 
 def build_run_config(thread_id: str) -> dict[str, dict[str, str]]:
     return {"configurable": {"thread_id": thread_id}}
+
+
+def register_deep_research_harness_profiles() -> str:
+    profile = HarnessProfile(
+        system_prompt_suffix=(
+            "For this deep research CLI, do research planning in prose or in the "
+            "QuickJS interpreter. Do not rely on the write_todos tool as a terminal action."
+        ),
+        excluded_middleware=frozenset({"TodoListMiddleware"}),
+    )
+    for key in ("ollama", "qwen3.5:9b", "openai:kimi-k2.6"):
+        register_harness_profile(key, profile)
+    return "Registered deep research harness profiles without TodoListMiddleware."
