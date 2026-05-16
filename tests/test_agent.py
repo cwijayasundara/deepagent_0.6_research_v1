@@ -148,11 +148,13 @@ def test_register_sample_harness_profiles(monkeypatch) -> None:
 
     notes = agent_module.register_sample_harness_profiles()
 
-    assert "deepagents-06/ollama-qwen" in registered
-    assert "deepagents-06/ollama-nemotron" in registered
-    assert "deepagents-06/moonshot-kimi" in registered
+    assert "ollama" in registered
+    assert "qwen3.6:latest" in registered
+    assert "qwen3.5:9b" in registered
+    assert "nemotron3:33b" in registered
+    assert "openai:kimi-k2.6" in registered
     assert "Harness profiles" in notes
-    assert "JavaScript" in registered["deepagents-06/ollama-qwen"].system_prompt_suffix
+    assert "JavaScript" in registered["ollama"].system_prompt_suffix
 
 
 def test_build_model_uses_single_llm_choice_switch_for_moonshot(monkeypatch, tmp_path: Path) -> None:
